@@ -1,0 +1,27 @@
+# 依赖
+node_modules/
+package-lock.json
+
+# 运行期产物
+data/
+*.log
+*.tmp
+
+# 浏览器档案与调试产物（绝不入库）
+.gh-profile/
+*.png
+*.jpg
+screenshots/
+
+# 环境与密钥
+.env
+.env.*
+*.key
+*.pem
+token.json
+credentials*
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
