@@ -81,9 +81,9 @@ git remote add origin git@github.com:<owner>/<repo>.git
 
 `.gitignore` 至少要有：`node_modules/`、`data/`、`.env`、`*.log`、临时 profile 目录。
 
-### Step 3：建仓库（用户操作，30 秒）
+### Step 3：建仓库（两条路，先判断用户在不在场）
 
-把下面这段直接发给用户：
+**路 A：用户在（默认，30 秒）** —— 把下面这段直接发给他：
 
 > 打开 https://github.com/new
 > - Repository name：`<repo>`
@@ -93,6 +93,20 @@ git remote add origin git@github.com:<owner>/<repo>.git
 > - 点 Create repository
 >
 > 建好跟我说一声。
+
+**路 B：用户不在场（可自动化，实测 6 秒）**
+
+```bash
+node scripts/create-repo.js <owner>/<repo> "一句话简介" \
+  --profile <已登录的 Chrome 档案目录>
+# 私有仓库加 --private；代理用 GITHUB_PROXY 环境变量覆盖
+```
+
+该脚本已内置三个关键修复（禁翻译 / 原生 setter / `el.click()`），
+缺任何一个都会退回「反复试选择器」的状态。前提是那个 Chrome 档案**已经登录 GitHub**。
+
+**为什么路 A 仍是默认**：路 B 依赖「档案已登录 + 代理可用 + 整个流程在同一轮次内跑完」，
+任一条不满足就会失败；而让用户点 30 秒永远成立。
 
 **三个勾必须空**：勾了会在远端产生初始 commit，后续 `git push` 直接 `rejected (fetch first)`，
 还要 `--allow-unrelated-histories` 合并，纯属自找麻烦。
@@ -149,11 +163,13 @@ curl -s --max-time 20 "https://api.github.com/repos/<owner>/<repo>" \
 ## 绝对不要做的事
 
 1. ❌ **为建仓库 / 改 topics / 改简介去申请 PAT。** PAT 页强制 sudo 邮箱 OTP，浏览器跨 turn 被杀 → 必然死循环。
-2. ❌ **为改一个元数据项启动浏览器。** 让用户点 10 秒，比自动化 1 小时强。
+2. ❌ **用户在场时，为改一个元数据项启动浏览器。** 让他点 10 秒，比自动化 1 小时强。
+   （用户不在场时见 `references/repo-metadata.md`，有验证过的配方，约 2 分钟，但要接受可能拿不全。）
 3. ❌ **跨 turn 等待验证码 / OTP。** 上一轮发出的码，这一轮浏览器已经没了。
 4. ❌ **在已解决的问题上二次开发。** 发布前先查：这事以前跑通过吗？跑通过就直接复用。
 5. ❌ **把 token 写进 git config / 代码库。** 只在命令行临时用，用完撤销。
 6. ❌ **建仓时勾 README / gitignore / license。** 会造成不必要的合并。
+7. ❌ **同一个元数据项试第四次。** 拿下 5 个 topics 和拿下 7 个，对仓库价值的差别远小于继续试错的成本 —— 停手、如实汇报。
 
 ---
 
@@ -161,13 +177,15 @@ curl -s --max-time 20 "https://api.github.com/repos/<owner>/<repo>" \
 
 ```
 SKILL.md                       本文件：分层决策 + 标准流程
-scripts/preflight.sh           环境自检（SSH / 代理 / API / git）
+scripts/preflight.sh           环境自检（SSH / 代理 / API / git / 敏感文件 / 版权）
 scripts/push.sh                清代理 + push + 远端一致性校验
+scripts/create-repo.js         用户不在场时建仓库（内置三个关键修复，实测 6 秒）
 scripts/check-license.js       版权门禁，9 项检查
 templates/LICENSE.mit-self     自研项目 LICENSE
 templates/LICENSE.mit-derived  衍生 MIT LICENSE（双署名）
 templates/NOTICE.apache        Apache-2.0 衍生 NOTICE
 templates/CREDITS.snippet.md   README 致谢段
 references/licensing.md        许可规范全文（四种衍生情形 / 5 个误解 / 9 项清单）
-references/repo-metadata.md    L2 元数据自动化细节（仅同 turn 内可用，含 4 个实测坑）
+references/repo-metadata.md    L2 元数据自动化配方（含 5 个坑：翻译劫持选择器、
+                               Enter 命中自动补全、描述框是 input 不是 textarea 等）
 ```

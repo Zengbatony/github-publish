@@ -123,14 +123,30 @@ MIT 的强制义务只有两条，全部集中在一句话里：
 SKILL.md                       分层决策 + 4 步流程 + 环境事实 + 排障表 + 禁止清单
 scripts/preflight.sh           环境自检，推之前跑，10 秒看清全部前置条件
 scripts/push.sh                清环境代理 + push + 远端一致性校验
+scripts/create-repo.js         用户不在场时建仓库（内置三个关键修复，实测 6 秒）
 scripts/check-license.js       版权门禁，9 项检查
 templates/LICENSE.mit-self     自研项目 LICENSE 模板
 templates/LICENSE.mit-derived  衍生 MIT 模板（双署名，上游在前）
 templates/NOTICE.apache        Apache-2.0 衍生必需 NOTICE
 templates/CREDITS.snippet.md   README 致谢段模板
 references/licensing.md        许可规范全文（4 种衍生情形 / 5 个误解 / 9 项清单）
-references/repo-metadata.md    L2 元数据 CDP 细节（仅同轮次可用，含 4 个实测坑）
+references/repo-metadata.md    L2 元数据自动化配方（含 5 个实测坑）
 ```
+
+### 两个可复用的实战脚本
+
+**`create-repo.js`** —— 用户不在场时建仓库。三个参数缺一不可：
+
+```bash
+node scripts/create-repo.js Zengbatony/my-repo "一句话简介" --profile <已登录 Chrome 档案>
+```
+
+内部固定了 `--disable-features=Translate,TranslateUI`（防页面被翻译、英文选择器失效）、
+原生 setter + `input` 事件（React 受控组件只认这个）、`el.click()`（真实鼠标事件在窗口未激活时无效）。
+2026-11-08 实测：启动到仓库就绪 **6 秒**。
+
+**`push.sh`** —— 你不需要记住清代理、不需要记住校验远端，
+它把这两个最容易忘的动作固化成了一条命令。
 
 ---
 
